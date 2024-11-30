@@ -1,0 +1,22 @@
+create file format training.satya.my_csv_format
+type=CSV
+field_optionally_enclosed_by='"';
+
+create or replace file format training.satya.my_csv_format type='csv' field_delimiter=',' skip_header=1;
+
+CREATE OR REPLACE STAGE training.satya.patient_stage
+url='s3://snowflake-training/satyatest/'
+file_format = my_csv_format
+ENCRYPTION = (TYPE = 'AWS_SSE_KMS' KMS_KEY_ID = 'XXXX');
+
+SELECT $1 from @training.satya.patient_stage;
+
+copy into training.satya.patient from @training.satya.patient_stage;
+
+
+CREATE OR replace MATERIALIZED VIEW training.satya.patient_view AS
+SELECT patientage, AVG(patientage) AS AvgStay
+FROM training.satya.Patient
+GROUP BY 1;
+
+SELECT * FROM training.satya.patient_view;
